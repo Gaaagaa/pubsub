@@ -548,30 +548,48 @@ private:
          * @struct x_deleter_t< __check_delete >
          * @brief  订阅者对象的删除器。
          */
-        template< bool __check_delete >
-        struct x_deleter_t
+        template< typename __suber_t, bool __check_delete >
+        struct x_deleter_t;
+
+        /**
+         * @struct x_deleter_t< true >
+         * @brief 订阅者对象的删除器。
+         * @note
+         * 仅对 x_subinvoke_t 类型的订阅者对象进行删除操作；
+         * 非 x_subinvoke_t 类型的订阅者为外部用户自定义的订阅者，
+         * 交由外部自行管理。
+         */
+        template< typename __suber_t >
+        struct x_deleter_t< __suber_t, true >
         {
-            void operator()(x_subscriber_t * xsub_ptr) const
+            void operator()(__suber_t * xsub_ptr) const
             {
-                if (__check_delete)
-                {
-                    // 只删除 x_subinvoke_t 类型的订阅者
-                    if (xsub_ptr->sub_type() > XSUBER_BASE_TYPE)
-                        delete xsub_ptr;
-                }
+                if (xsub_ptr->sub_type() > XSUBER_BASE_TYPE)
+                    delete xsub_ptr;
             }
+        };
+
+        /**
+         * @struct x_deleter_t< false >
+         * @brief 订阅者对象的删除器。
+         * @note 忽略订阅者对象的删除操作。
+         */
+        template< typename __suber_t >
+        struct x_deleter_t< __suber_t, false >
+        {
+            void operator()(__suber_t * xsub_ptr) const { }
         };
 
         // constructor/destructor
     public:
         x_subptr_t(x_subscriber_t * xsub_ptr)
-            : x_super_t(xsub_ptr, x_deleter_t< true >())
+            : x_super_t(xsub_ptr, x_deleter_t< x_subscriber_t, true >())
         {
 
         }
 
         x_subptr_t(x_subscriber_t * xsub_ptr, bool)
-            : x_super_t(xsub_ptr, x_deleter_t< false >())
+            : x_super_t(xsub_ptr, x_deleter_t< x_subscriber_t, false >())
         {
 
         }
