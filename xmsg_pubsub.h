@@ -30,25 +30,7 @@
 #include <tuple>
 #include <functional>
 #include <atomic>
-
-////////////////////////////////////////////////////////////////////////////////
-
-#ifndef ENABLE_XASSERT
-#if ((defined _DEBUG) || (defined DEBUG))
-#define ENABLE_XASSERT 1
-#else // !((defined _DEBUG) || (defined DEBUG))
-#define ENABLE_XASSERT 0
-#endif // ((defined _DEBUG) || (defined DEBUG))
-#endif // ENABLE_XASSERT
-
-#ifndef XASSERT
-#if ENABLE_XASSERT
-#include <assert.h>
-#define XASSERT(xptr)    assert(xptr)
-#else // !ENABLE_XASSERT
-#define XASSERT(xptr)
-#endif // ENABLE_XASSERT
-#endif // XASSERT
+#include <cassert>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -666,8 +648,8 @@ public:
      */
     x_subkey_t subscribe(const x_mkey_t & xmkey, x_subscriber_t * xsub_ptr)
     {
-        XASSERT(nullptr != xsub_ptr);
-        XASSERT(xsub_ptr->sub_type() < XSUBER_BASE_TYPE);
+        assert(nullptr != xsub_ptr);
+        assert(xsub_ptr->sub_type() < XSUBER_BASE_TYPE);
 
         return iinvk_subscribe(xmkey, xsub_ptr);
     }
@@ -702,6 +684,7 @@ public:
                     std::forward< x_mfunc_t >(xfunc),
                     std::forward< x_tuple_t >(
                         x_tuple_t{ std::forward< __args_t >(xargs)... }));
+        assert(nullptr != xsub_ptr);
 
         return iinvk_subscribe(xmkey, xsub_ptr);
     }
@@ -710,9 +693,9 @@ public:
     /**
      * @brief 订阅者对象 取消订阅指定的消息类型。
      * @note
-     * 1. 若 (nullptr == xsub_ptr) 时，则取消 xmkey 下所有的订阅者对象。
-     * 2. 在单线程环境下，若 dispatch() 操作的当前订阅者对象在处理消息时，
-     *    调用 unsubscribe() 进行自我取消订阅操作，这是没问题的。
+     * 在单线程环境下，若 dispatch() 操作的当前订阅者对象在处理消息时，
+     * 调用 unsubscribe() 进行自我取消订阅操作，这是没问题的；
+     * 多线程环境下，调用 unsubscribe() 是不安全的操作。
      * 
      * @param[in ] xmkey    : 消息类型。
      * @param[in ] xsub_ptr : 订阅者对象。
@@ -722,19 +705,6 @@ public:
         typename x_submap_t::iterator itset = m_xmap_suber.find(xmkey);
         if (itset == m_xmap_suber.end())
         {
-            return;
-        }
-
-        // (nullptr == xsub_ptr) ，表示要取消 xmkey 下所有的订阅者对象
-        if (nullptr == xsub_ptr)
-        {
-            // 要取消的消息类型集合，不能为 当前正在投递操作 的集合
-            if ((nullptr == m_iter_suber.second) ||
-                (xmkey != m_iter_suber.first))
-            {
-                m_xmap_suber.erase(itset);
-            }
-
             return;
         }
 
@@ -779,6 +749,24 @@ public:
         if (nullptr != xsub_sptr)
         {
             unsubscribe(xsub_key.xmkey, xsub_sptr.get());
+        }
+    }
+
+    /**********************************************************/
+    /**
+     * @brief 取消 xmkey 下所有的订阅者对象。
+     */
+    void unsubscribe(const x_mkey_t & xmkey)
+    {
+        typename x_submap_t::iterator itset = m_xmap_suber.find(xmkey);
+        if (itset != m_xmap_suber.end())
+        {
+            // 要取消的消息类型集合，不能为 当前正在投递操作 的集合
+            if ((nullptr == m_iter_suber.second) ||
+                (xmkey != m_iter_suber.first))
+            {
+                m_xmap_suber.erase(itset);
+            }
         }
     }
 
