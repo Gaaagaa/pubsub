@@ -22,13 +22,12 @@
 
 /**
  * @file xmsg_pubsub.h
- * <pre>
  * Copyright (c) 2019, Gaaagaa All rights reserved.
  * 
- * author ：Gaaagaa
- * date   : 2019-11-20
- * info   : 消息发布订阅模式使用的 订阅者 与 发布者 模板类。
- * </pre>
+ * @author  ：Gaaagaa
+ * @date    : 2019-11-20
+ * @version : 1.0.0.0
+ * @brief   : 消息发布订阅模式使用的 订阅者 与 发布者 模板类。
  */
 
 #ifndef __XMSG_PUBSUB_H__
@@ -106,8 +105,8 @@ struct xmsg_args_t
  * @class xmsg_context_t< __msg_mkey_t, __msg_args_t... >
  * @brief 发布订阅模式使用的消息模板类。
  * 
- * @param[in ] __msg_mkey_t : 消息索引键值（使用 xmsg_mkey_t 构建）。
- * @param[in ] __msg_args_t : 消息参数列表（使用 xmsg_args_t 构建）。
+ * @param [in ] __msg_mkey_t : 消息索引键值（使用 xmsg_mkey_t 构建）。
+ * @param [in ] __msg_args_t : 消息参数列表（使用 xmsg_args_t 构建）。
  */
 template< typename __msg_mkey_t, typename __msg_args_t >
 class xmsg_context_t
@@ -226,8 +225,8 @@ static constexpr xsub_type_t
  * @class xmsg_subscriber_t< __msg_ctxt_t, __sub_type >
  * @brief 发布订阅模式使用的订阅者模板类。
  * 
- * @param[in ] __sub_type   : 订阅者类型标识。
- * @param[in ] __msg_ctxt_t : 消息类型。
+ * @param [in ] __sub_type   : 订阅者类型标识。
+ * @param [in ] __msg_ctxt_t : 消息类型。
  */
 template< xsub_type_t __sub_type, typename __msg_ctxt_t >
 class xmsg_subscriber_t;
@@ -236,8 +235,8 @@ class xmsg_subscriber_t;
  * @class xmsg_subscriber_t< __msg_ctxt_t, __sub_type >
  * @brief 发布订阅模式使用的订阅者模板类。
  * 
- * @param[in ] __sub_type   : 订阅者类型标识。
- * @param[in ] __msg_ctxt_t : 消息类型。
+ * @param [in ] __sub_type   : 订阅者类型标识。
+ * @param [in ] __msg_ctxt_t : 消息类型。
  */
 template< typename __msg_ctxt_t >
 class xmsg_subscriber_t< XSUBER_BASE_TYPE, __msg_ctxt_t >
@@ -309,8 +308,8 @@ public:
  * 强制要求（__sub_type < 0x80000000），主要是为了区别于
  * xmsg_publisher_t 内部的 x_subinvoke_t 订阅者类型。
  * 
- * @param[in ] __sub_type   : 订阅者类型标识。
- * @param[in ] __msg_ctxt_t : 消息类型。
+ * @param [in ] __sub_type   : 订阅者类型标识。
+ * @param [in ] __msg_ctxt_t : 消息类型。
  */
 template< xsub_type_t __sub_type, typename __msg_ctxt_t >
 class xmsg_subscriber_t
@@ -348,8 +347,8 @@ public:
  * @class xmsg_publisher_t< __msg_context_t, __msg_queue_t >
  * @brief 发布订阅模式使用的订阅者模板类。
  * 
- * @param[in ] __msg_context_t : 消息类型。
- * @param[in ] __msg_queue_t   : 消息队列。
+ * @param [in ] __msg_context_t : 消息类型。
+ * @param [in ] __msg_queue_t   : 消息队列。
  */
 template< typename __msg_context_t,
           typename __msg_queue_t = std::queue< __msg_context_t > >
@@ -442,8 +441,8 @@ private:
      * @brief 为了使用 “仿函数对象 与 lambda 表达式 等类函数的泛型接口” 
      * 进行消息处理，而设计的订阅者模板类。
      * 
-     * @param[in ] __mfunc_t : 消息处理的回调接口函数。
-     * @param[in ] __tuple_t : 回调的参数元组。
+     * @param [in ] __mfunc_t : 消息处理的回调接口函数。
+     * @param [in ] __tuple_t : 回调的参数元组。
      */
     template< typename __mfunc_t, typename __tuple_t >
     class x_subinvoke_t : public x_subscriber_t
@@ -650,8 +649,8 @@ public:
      * @brief 订阅者对象 订阅指定的消息类型。
      * @note 该接口用于 非x_subinvoke_t（即用户重载的订阅者类） 类型的订阅操作。
      * 
-     * @param[in ] xmkey    : 消息类型。
-     * @param[in ] xsub_ptr : 订阅者对象。
+     * @param [in ] xmkey    : 消息类型。
+     * @param [in ] xsub_ptr : 订阅者对象。
      * 
      * @return x_subkey_t
      *         - 成功，返回的 x_subkey_t 有效；
@@ -673,9 +672,9 @@ public:
      * 2. 可以使用返回的 weak_ptr 所指向的 订阅者对象，
      *    进行 unsubscribe() 取消该消息的订阅操作。
      * 
-     * @param[in ] xmkey    : 消息类型。
-     * @param[in ] xfunc    : 消息处理的接口函数。
-     * @param[in ] xargs... : 回调的参数（或 类对象）。
+     * @param [in ] xmkey    : 消息类型。
+     * @param [in ] xfunc    : 消息处理的接口函数。
+     * @param [in ] xargs... : 回调的参数（或 类对象）。
      * 
      * @return x_subkey_t
      *         - 成功，返回的 x_subkey_t 有效；
@@ -708,8 +707,8 @@ public:
      * 调用 unsubscribe() 进行自我取消订阅操作，这是没问题的；
      * 多线程环境下，调用 unsubscribe() 是不安全的操作。
      * 
-     * @param[in ] xmkey    : 消息类型。
-     * @param[in ] xsub_ptr : 订阅者对象。
+     * @param [in ] xmkey    : 消息类型。
+     * @param [in ] xsub_ptr : 订阅者对象。
      */
     void unsubscribe(const x_mkey_t & xmkey, x_subscriber_t * xsub_ptr)
     {
@@ -752,7 +751,7 @@ public:
     /**
      * @brief 订阅者对象 取消订阅指定的消息类型。
      * 
-     * @param[in ] xsub_key : 其为 subscribe() 返回的订阅者索引键。
+     * @param [in ] xsub_key : 其为 subscribe() 返回的订阅者索引键。
      */
     void unsubscribe(const x_subkey_t & xsub_key)
     {
@@ -890,8 +889,8 @@ private:
     /**
      * @brief 订阅者对象 订阅指定的消息类型。
      * 
-     * @param[in ] xmkey    : 消息类型。
-     * @param[in ] xsub_ptr : 订阅者对象。
+     * @param [in ] xmkey    : 消息类型。
+     * @param [in ] xsub_ptr : 订阅者对象。
      * 
      * @return x_subkey_t
      *         - 成功，返回的 x_subkey_t 有效；
