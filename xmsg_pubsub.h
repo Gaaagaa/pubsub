@@ -33,7 +33,7 @@
 #ifndef __XMSG_PUBSUB_H__
 #define __XMSG_PUBSUB_H__
 
-#include <set>
+#include <unordered_set>
 #include <unordered_map>
 #include <queue>
 #include <memory>
@@ -85,11 +85,13 @@ struct xbuild_index_sequence_t< 0, xindex_sequence_t< __indexes... > >
  * @brief  用于消息索引键类型声明。
  */
 template< typename __mkey_t,
+          typename __equal_t = std::equal_to< __mkey_t >,
           typename __hasher_t = std::hash< __mkey_t > >
 struct xmsg_mkey_t
 {
     typedef typename std::decay< __mkey_t >::type type;
-    typedef __hasher_t hasher;
+    typedef __equal_t x_equal_t;
+    typedef __hasher_t x_hash_t;
 };
 
 /**
@@ -115,10 +117,11 @@ class xmsg_context_t
 {
     // common data types
 public:
-    using x_mkey_t = typename __msg_mkey_t::type;
-    using x_args_t = typename __msg_args_t::type;
+    typedef __msg_mkey_t xmsg_mkey_t;
+    typedef __msg_args_t xmsg_args_t;
 
-    using x_hasher_t = typename __msg_mkey_t::hasher;
+    using x_mkey_t = typename xmsg_mkey_t::type;
+    using x_args_t = typename xmsg_args_t::type;
 
     // constructor/destructor
 public:
@@ -537,6 +540,44 @@ private:
     class x_subptr_t : public x_subsptr_t
     {
         // common data types
+    public:
+        /**
+         * @struct x_hash_t
+         * @brief 用于计算 哈希键值 的仿函数结构体类型。
+         */
+        struct x_hash_t
+        {
+        public:
+            typedef x_subptr_t argument_type;
+            typedef size_t result_type;
+
+            size_t operator()(const x_subptr_t & xsub_ptr) const
+            {
+                return m_xfunctor(xsub_ptr.get());
+            }
+
+        private:
+            std::hash< x_subscriber_t * > m_xfunctor; ///< 仿函数操作实现的对象
+        };
+
+        /**
+         * @struct x_equal_t
+         * @brief 判断相等的仿函数结构体类型。
+         */
+        struct x_equal_t
+        {
+        public:
+            typedef x_subptr_t first_argument_type;
+            typedef x_subptr_t second_argument_type;
+            typedef bool result_type;
+
+            bool operator()(const x_subptr_t & xsub_lptr,
+                            const x_subptr_t & xsub_rptr) const
+            {
+                return (xsub_lptr.get() == xsub_rptr.get());
+            }
+        };
+
     private:
         using x_super_t = x_subsptr_t;
 
@@ -604,29 +645,17 @@ private:
         }
     };
 
-    /**
-     * @struct xsuber_less_t
-     * @brief 对两个消息订阅对象进行 小于比较 操作的仿函数结构体。
-     * @note 该接口用于排序比较操作。
-     */
-    struct xsuber_less_t
-    {
-    public:
-        bool operator()(const x_subptr_t & xsub_lptr,
-                        const x_subptr_t & xsub_rptr) const
-        {
-            if (xsub_lptr.get() == xsub_rptr.get())
-                return false;
-            if (xsub_lptr->sub_type() != xsub_rptr->sub_type())
-                return (xsub_lptr->sub_type() < xsub_rptr->sub_type());
-            return (reinterpret_cast< std::ptrdiff_t >(xsub_lptr.get()) <
-                    reinterpret_cast< std::ptrdiff_t >(xsub_rptr.get()));
-        }
-    };
+    using x_subset_t = std::unordered_set<
+                                x_subptr_t,
+                                typename x_subptr_t::x_hash_t,
+                                typename x_subptr_t::x_equal_t >;
 
-    using x_hasher_t  = typename x_msgctxt_t::x_hasher_t;
-    using x_subset_t  = typename std::set< x_subptr_t, xsuber_less_t >;
-    using x_submap_t  = typename std::unordered_map< x_mkey_t, x_subset_t, x_hasher_t >;
+    using x_submap_t = std::unordered_map<
+                                x_mkey_t,
+                                x_subset_t,
+                                typename x_msgctxt_t::xmsg_mkey_t::x_hash_t,
+                                typename x_msgctxt_t::xmsg_mkey_t::x_equal_t >;
+
     using x_iterptr_t = std::pair< x_mkey_t, typename x_subset_t::iterator * >;
 
     // constructor/destructor
