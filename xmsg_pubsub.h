@@ -34,7 +34,7 @@
 #define __XMSG_PUBSUB_H__
 
 #include <set>
-#include <map>
+#include <unordered_map>
 #include <queue>
 #include <memory>
 #include <tuple>
@@ -84,10 +84,12 @@ struct xbuild_index_sequence_t< 0, xindex_sequence_t< __indexes... > >
  * @struct xmsg_mkey_t< __mkey_t >
  * @brief  用于消息索引键类型声明。
  */
-template< typename __mkey_t >
+template< typename __mkey_t,
+          typename __hasher_t = std::hash< __mkey_t > >
 struct xmsg_mkey_t
 {
     typedef typename std::decay< __mkey_t >::type type;
+    typedef __hasher_t hasher;
 };
 
 /**
@@ -115,6 +117,8 @@ class xmsg_context_t
 public:
     using x_mkey_t = typename __msg_mkey_t::type;
     using x_args_t = typename __msg_args_t::type;
+
+    using x_hasher_t = typename __msg_mkey_t::hasher;
 
     // constructor/destructor
 public:
@@ -620,8 +624,9 @@ private:
         }
     };
 
+    using x_hasher_t  = typename x_msgctxt_t::x_hasher_t;
     using x_subset_t  = typename std::set< x_subptr_t, xsuber_less_t >;
-    using x_submap_t  = typename std::map< x_mkey_t, x_subset_t >;
+    using x_submap_t  = typename std::unordered_map< x_mkey_t, x_subset_t, x_hasher_t >;
     using x_iterptr_t = std::pair< x_mkey_t, typename x_subset_t::iterator * >;
 
     // constructor/destructor
