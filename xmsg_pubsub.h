@@ -960,12 +960,14 @@ private:
     x_msgqueue_t  m_xmsg_queue;  ///< 消息队列
 };
 
+/** 用于生成 x_subinvoke_t 类型标识的流水号 */
 template< typename __msg_context_t, typename __msg_queue_t >
 std::atomic_size_t xmsg_publisher_t<
                         __msg_context_t,
                         __msg_queue_t
                    >::sub_type_seqno(XSUBER_BASE_TYPE + 1);
 
+/** x_subinvoke_t 的订阅者类型 */
 template< typename __msg_context_t, typename __msg_queue_t >
 template< typename __mfunc_t, typename __tuple_t >
 xsub_type_t xmsg_publisher_t<
